@@ -1,11 +1,11 @@
 /* =========================================================
    VELOOP REWARDS
-   COMPLETE FRONT-END DEMO
+   DARK PREMIUM VERSION
    ========================================================= */
 
 
 /* =========================================================
-   USER STATE
+   STATE
    ========================================================= */
 
 let state = {
@@ -34,7 +34,7 @@ let state = {
 
 
 /* =========================================================
-   LEVEL SYSTEM
+   LEVELS
    ========================================================= */
 
 const LEVEL_NAMES = [
@@ -79,7 +79,7 @@ function getLevelName(level) {
 
 
 /* =========================================================
-   UPDATE LEVEL
+   LEVEL UPDATE
    ========================================================= */
 
 function updateLevel() {
@@ -111,7 +111,9 @@ function updateLevel() {
     newLevel;
 
 
-  if (state.level < 10) {
+  if (
+    state.level < 10
+  ) {
 
     state.xpMax =
       LEVEL_XP[state.level + 1];
@@ -126,19 +128,21 @@ function updateLevel() {
   }
 
 
+  /* LEVEL UP */
+
   if (
     newLevel > oldLevel
   ) {
 
     setTimeout(
-      function () {
+      () => {
 
-        showToast(
-          `🎉 Level ${String(newLevel).padStart(2, "0")} • ${getLevelName(newLevel)} unlocked!`
+        showLevelUpModal(
+          newLevel
         );
 
       },
-      100
+      250
     );
 
   }
@@ -147,7 +151,7 @@ function updateLevel() {
 
 
 /* =========================================================
-   XP PERCENTAGE
+   XP %
    ========================================================= */
 
 function getXPPercentage() {
@@ -161,26 +165,21 @@ function getXPPercentage() {
   }
 
 
-  const currentLevelXP =
+  const current =
     LEVEL_XP[state.level];
 
-
-  const nextLevelXP =
+  const next =
     LEVEL_XP[state.level + 1];
-
-
-  const progress =
-    (
-      (state.xp - currentLevelXP) /
-      (nextLevelXP - currentLevelXP)
-    ) * 100;
 
 
   return Math.max(
     0,
     Math.min(
       100,
-      progress
+      (
+        (state.xp - current) /
+        (next - current)
+      ) * 100
     )
   );
 
@@ -242,10 +241,8 @@ function completeTask(
   state.xp +=
     xp;
 
-
   state.ve +=
     ve;
-
 
   state.tasks =
     Math.min(
@@ -258,7 +255,8 @@ function completeTask(
     state.streak === 0
   ) {
 
-    state.streak = 1;
+    state.streak =
+      1;
 
   }
 
@@ -271,7 +269,9 @@ function completeTask(
   );
 
 
-  render("earn");
+  render(
+    "earn"
+  );
 
 }
 
@@ -321,7 +321,7 @@ function home() {
     state.level < 10
       ? String(
           state.level + 1
-        ).padStart(2, "0")
+        ).padStart(2,"0")
       : "MAX";
 
 
@@ -342,17 +342,8 @@ function home() {
 
       <div class="sub">
 
-        ${
-          state.level === 0
-            ? `
-              Your reward journey starts here.<br>
-              Complete your first activity and earn XP.
-            `
-            : `
-              Level up your journey and unlock<br>
-              epic rewards every day.
-            `
-        }
+        Level up your journey and unlock
+        epic rewards every day.
 
       </div>
 
@@ -360,21 +351,21 @@ function home() {
       ${
         state.level === 0
           ? `
+
             <div class="start-hint">
 
-              ✨ You are starting at
+              ✨ Start your journey at
               <b>Level 00 — Newcomer</b>.
 
               Complete your first activity
-              to begin your VELOOP journey.
+              and begin earning XP.
 
             </div>
+
           `
           : ""
       }
 
-
-      <!-- LEVEL -->
 
       <div class="level-card">
 
@@ -389,7 +380,7 @@ function home() {
             <b>
               ${String(
                 state.level
-              ).padStart(2, "0")}
+              ).padStart(2,"0")}
             </b>
 
           </div>
@@ -420,10 +411,8 @@ function home() {
 
           <div
             class="xp-progress"
-            style="
-              width:${percentage}%
-            "
-          ></div>
+            style="width:${percentage}%">
+          </div>
 
         </div>
 
@@ -440,8 +429,6 @@ function home() {
 
       </div>
 
-
-      <!-- TODAY -->
 
       <div class="section-title">
         Today's Boost
@@ -497,7 +484,7 @@ function home() {
             </b>
 
             <span>
-              Day Streak
+              Streak
             </span>
 
           </div>
@@ -506,8 +493,6 @@ function home() {
 
       </div>
 
-
-      <!-- EARN -->
 
       <div class="section-title">
         Earn More
@@ -523,7 +508,7 @@ function home() {
           </h3>
 
           <p>
-            Complete activities to earn XP and rewards.
+            Earn XP and unlock better rewards.
           </p>
 
         </div>
@@ -542,159 +527,114 @@ function home() {
       <div class="action-grid">
 
 
-        <div
-          class="action-card"
-          onclick="completeTask('Watch & Earn',50)">
-
-          <div class="action-icon">
-            ▶
-          </div>
-
-          <b>
-            Watch
-          </b>
-
-          <span>
-            +50 XP
-          </span>
-
-        </div>
+        ${homeAction(
+          "▶",
+          "Watch",
+          "+50 XP",
+          "completeTask('Watch & Earn',50)"
+        )}
 
 
-        <div
-          class="action-card"
-          onclick="completeTask('Daily Task',75)">
-
-          <div class="action-icon">
-            ✓
-          </div>
-
-          <b>
-            Tasks
-          </b>
-
-          <span>
-            +75 XP
-          </span>
-
-        </div>
+        ${homeAction(
+          "✓",
+          "Tasks",
+          "+75 XP",
+          "completeTask('Daily Task',75)"
+        )}
 
 
-        <div
-          class="action-card"
-          onclick="completeTask('Referral',100,5)">
-
-          <div class="action-icon">
-            👥
-          </div>
-
-          <b>
-            Refer
-          </b>
-
-          <span>
-            +100 XP
-          </span>
-
-        </div>
+        ${homeAction(
+          "👥",
+          "Refer",
+          "+100 XP",
+          "completeTask('Referral',100,5)"
+        )}
 
 
-        <div
-          class="action-card"
-          onclick="render('game')">
-
-          <div class="action-icon">
-            🎮
-          </div>
-
-          <b>
-            Games
-          </b>
-
-          <span>
-            Play & Earn
-          </span>
-
-        </div>
+        ${homeAction(
+          "🎮",
+          "Games",
+          "Play",
+          "render('game')"
+        )}
 
 
-        <div
-          class="action-card"
-          onclick="render('game')">
-
-          <div class="action-icon">
-            ⚡
-          </div>
-
-          <b>
-            Catcher
-          </b>
-
-          <span>
-            Catch XP
-          </span>
-
-        </div>
+        ${homeAction(
+          "⚡",
+          "Catcher",
+          "Catch XP",
+          "render('game')"
+        )}
 
 
-        <div
-          class="action-card"
-          onclick="completeTask('Daily Streak',40)">
-
-          <div class="action-icon">
-            🔥
-          </div>
-
-          <b>
-            Streak
-          </b>
-
-          <span>
-            +40 XP
-          </span>
-
-        </div>
-
+        ${homeAction(
+          "🔥",
+          "Streak",
+          "+40 XP",
+          "completeTask('Daily Streak',40)"
+        )}
 
       </div>
 
-
-      <!-- REWARD -->
 
       <div class="reward-card">
 
         <div>
 
           <h3>
-
             ${
               state.level === 0
                 ? "Your First Rewards"
                 : `${getLevelName(state.level)} Rewards`
             }
-
           </h3>
 
           <p>
-
-            ${
-              state.level === 0
-                ? "Start earning XP to unlock your first reward."
-                : "Keep earning to unlock more rewards."
-            }
-
+            Keep earning XP to unlock new levels,
+            challenges and rewards.
           </p>
 
         </div>
 
-
         <div class="reward-image">
-          🎁
+          🏆
         </div>
 
       </div>
 
     </section>
+
+  `;
+
+}
+
+
+function homeAction(
+  icon,
+  title,
+  reward,
+  action
+) {
+
+  return `
+
+    <div
+      class="action-card"
+      onclick="${action}">
+
+      <div class="action-icon">
+        ${icon}
+      </div>
+
+      <b>
+        ${title}
+      </b>
+
+      <span>
+        ${reward}
+      </span>
+
+    </div>
 
   `;
 
@@ -711,7 +651,7 @@ function earn() {
 
     ${header(
       "Earn & Grow",
-      "Complete simple activities and build your VELOOP level."
+      "Complete activities. Earn XP. Climb levels."
     )}
 
 
@@ -726,11 +666,11 @@ function earn() {
           </div>
 
           <b>
-            ${state.xp} XP
+            ${state.xp}
           </b>
 
           <span>
-            Earned
+            XP
           </span>
 
         </div>
@@ -791,18 +731,18 @@ function earn() {
 
     ${earningCard(
       "🎯",
-      "Daily Task",
-      "Complete today's simple activity.",
+      "Daily Mission",
+      "Complete today's mission.",
       "+75 XP",
       "START",
-      "completeTask('Daily Task',75)"
+      "completeTask('Daily Mission',75)"
     )}
 
 
     ${earningCard(
       "👥",
       "Refer & Earn",
-      "Invite friends to join VELOOP.",
+      "Invite friends to VELOOP.",
       "+100 XP + 5 VEs",
       "START",
       "completeTask('Referral',100,5)"
@@ -812,8 +752,8 @@ function earn() {
     ${earningCard(
       "⚡",
       "XP Catcher",
-      "Play a quick mini-game and catch XP.",
-      "Play & Earn",
+      "Catch falling XP, VEs and Gems.",
+      "PLAY",
       "PLAY",
       "render('game')"
     )}
@@ -822,7 +762,7 @@ function earn() {
     ${earningCard(
       "🔥",
       "Daily Streak",
-      "Keep your daily activity streak alive.",
+      "Keep your streak alive.",
       "+40 XP",
       "CLAIM",
       "completeTask('Daily Streak',40)"
@@ -836,55 +776,26 @@ function earn() {
 
     <div class="action-grid">
 
-      <div
-        class="action-card"
-        onclick="showToast('Games section coming soon 🎮')">
+      ${homeAction(
+        "🎮",
+        "Games",
+        "Play & Earn",
+        "showToast('More games coming soon 🎮')"
+      )}
 
-        <div class="action-icon">
-          🎮
-        </div>
+      ${homeAction(
+        "📋",
+        "Surveys",
+        "Earn XP",
+        "showToast('Surveys coming soon 📋')"
+      )}
 
-        <b>Games</b>
-
-        <span>
-          Play & Earn
-        </span>
-
-      </div>
-
-
-      <div
-        class="action-card"
-        onclick="showToast('Surveys coming soon 📋')">
-
-        <div class="action-icon">
-          📋
-        </div>
-
-        <b>Surveys</b>
-
-        <span>
-          Earn XP
-        </span>
-
-      </div>
-
-
-      <div
-        class="action-card"
-        onclick="showToast('Offers coming soon 🎁')">
-
-        <div class="action-icon">
-          🎁
-        </div>
-
-        <b>Offers</b>
-
-        <span>
-          Special rewards
-        </span>
-
-      </div>
+      ${homeAction(
+        "🎁",
+        "Offers",
+        "Special rewards",
+        "showToast('Offers coming soon 🎁')"
+      )}
 
     </div>
 
@@ -955,7 +866,7 @@ function rewards() {
 
     ${header(
       "Rewards",
-      "Complete activities and unlock all 10 VELOOP levels."
+      "Climb all 10 levels and unlock your journey."
     )}
 
 
@@ -972,7 +883,7 @@ function rewards() {
           <b>
             ${String(
               state.level
-            ).padStart(2, "0")}
+            ).padStart(2,"0")}
           </b>
 
         </div>
@@ -1006,54 +917,37 @@ function rewards() {
 
         <div
           class="xp-progress"
-          style="
-            width:${getXPPercentage()}%
-          "
-        ></div>
+          style="width:${getXPPercentage()}%">
+        </div>
 
       </div>
 
-
       <div class="tiny">
-
-        Level
-        ${String(
+        Level ${String(
           state.level
-        ).padStart(2, "0")}
-        of 10
-
+        ).padStart(2,"0")} of 10
       </div>
 
     </div>
 
 
     <div class="section-title">
-      Your VELOOP Journey
+      VELOOP Journey
     </div>
 
 
     <div class="level-ladder">
 
       ${createLevelRow(0,"Newcomer",0)}
-
       ${createLevelRow(1,"Starter",500)}
-
       ${createLevelRow(2,"Bronze",1200)}
-
       ${createLevelRow(3,"Silver",2200)}
-
       ${createLevelRow(4,"Gold",3500)}
-
       ${createLevelRow(5,"Platinum",5000)}
-
       ${createLevelRow(6,"Diamond",7000)}
-
       ${createLevelRow(7,"Emerald",9500)}
-
       ${createLevelRow(8,"Sapphire",12500)}
-
       ${createLevelRow(9,"Master",16000)}
-
       ${createLevelRow(10,"Legend",20000)}
 
     </div>
@@ -1075,7 +969,6 @@ function createLevelRow(
 
   const unlocked =
     state.level >= level;
-
 
   const current =
     state.level === level;
@@ -1120,13 +1013,7 @@ function createLevelRow(
 
 
       <strong>
-
-        ${
-          unlocked
-            ? "✓"
-            : "🔒"
-        }
-
+        ${unlocked ? "✓" : "🔒"}
       </strong>
 
     </div>
@@ -1166,9 +1053,7 @@ function wallet() {
 
 
       <div class="wallet-label">
-
-        Your total available rewards
-
+        Your available virtual rewards
       </div>
 
 
@@ -1186,7 +1071,7 @@ function wallet() {
 
         <button
           class="btn-secondary"
-          onclick="showToast('Transaction history is empty')"
+          onclick="showToast('No transactions yet')"
           type="button">
 
           History
@@ -1263,141 +1148,24 @@ function wallet() {
 
 
     <div class="section-title">
-      Reward Information
-    </div>
-
-
-    <div class="reward-card">
-
-      <div>
-
-        <h3>
-          VEs — VELOOP Earn Tokens
-        </h3>
-
-        <p>
-          Your primary virtual reward currency.
-        </p>
-
-      </div>
-
-    </div>
-
-
-    <div class="reward-card">
-
-      <div>
-
-        <h3>
-          SVEs — Silver VEs
-        </h3>
-
-        <p>
-          SVEs can be converted into VEs according
-          to the applicable platform rules.
-        </p>
-
-      </div>
-
-    </div>
-
-
-    <div class="section-title">
       Redemption
     </div>
 
 
     ${redemptionRow("₹10","2,400 VEs")}
-
     ${redemptionRow("₹25","5,800 VEs")}
-
     ${redemptionRow("₹50","10,000 VEs")}
-
     ${redemptionRow("₹100","19,500 VEs")}
-
     ${redemptionRow("₹150","28,500 VEs")}
-
     ${redemptionRow("₹300","52,500 VEs")}
-
     ${redemptionRow("₹500","80,500 VEs")}
-
     ${redemptionRow("₹1,000","150,000 VEs")}
 
-
-    <div class="section-title">
-      How To Earn More
-    </div>
-
-
-    <div class="activity-list">
-
-      ${walletActivity(
-        "⚡",
-        "Complete Tasks",
-        "Earn rewards by completing available activities."
-      )}
-
-      ${walletActivity(
-        "🔥",
-        "Maintain Streak",
-        "Return every day for extra rewards."
-      )}
-
-      ${walletActivity(
-        "🎮",
-        "Play Games",
-        "Play mini-games and collect rewards."
-      )}
-
-      ${walletActivity(
-        "👥",
-        "Refer Friends",
-        "Invite friends and grow your rewards."
-      )}
-
-    </div>
-
-
-    <div class="section-title">
-      Withdrawal
-    </div>
-
-
-    <div class="reward-card">
-
-      <div>
-
-        <h3>
-          💳 Cash Out
-        </h3>
-
-        <p>
-          Check available redemption options
-          based on your current VE balance.
-        </p>
-
-      </div>
-
-
-      <button
-        class="btn"
-        onclick="withdrawReward()"
-        type="button">
-
-        CHECK
-
-      </button>
-
-    </div>
 
   `;
 
 }
 
-
-/* =========================================================
-   REDEMPTION ROW
-   ========================================================= */
 
 function redemptionRow(
   amount,
@@ -1435,51 +1203,6 @@ function redemptionRow(
 }
 
 
-/* =========================================================
-   WALLET ACTIVITY
-   ========================================================= */
-
-function walletActivity(
-  icon,
-  title,
-  description
-) {
-
-  return `
-
-    <div class="activity-item">
-
-      <div class="activity-icon">
-        ${icon}
-      </div>
-
-      <div class="activity-info">
-
-        <b>
-          ${title}
-        </b>
-
-        <small>
-          ${description}
-        </small>
-
-      </div>
-
-      <div class="activity-reward">
-        +XP
-      </div>
-
-    </div>
-
-  `;
-
-}
-
-
-/* =========================================================
-   WITHDRAW
-   ========================================================= */
-
 function withdrawReward() {
 
   if (
@@ -1512,7 +1235,7 @@ function profile() {
 
     ${header(
       "Profile",
-      "Manage your VELOOP journey and progress."
+      "Manage your VELOOP journey."
     )}
 
 
@@ -1527,8 +1250,7 @@ function profile() {
       </h2>
 
       <p>
-        Level
-        ${String(
+        Level ${String(
           state.level
         ).padStart(2,"0")}
         •
@@ -1558,7 +1280,7 @@ function profile() {
           </b>
 
           <span>
-            Total XP
+            XP
           </span>
 
         </div>
@@ -1603,166 +1325,32 @@ function profile() {
 
 
     <div class="section-title">
-      Current Level
-    </div>
-
-
-    <div class="level-card">
-
-      <div class="level-top">
-
-        <div class="level-badge">
-
-          <small>
-            ${getLevelName(state.level)}
-          </small>
-
-          <b>
-            ${String(
-              state.level
-            ).padStart(2,"0")}
-          </b>
-
-        </div>
-
-
-        <div>
-
-          <div class="xp-number">
-            ${state.xp.toLocaleString()} XP
-          </div>
-
-          <div class="xp-label">
-
-            ${
-              state.level >= 10
-                ? "Maximum level reached 👑"
-                : `${Math.max(
-                    0,
-                    state.xpMax - state.xp
-                  ).toLocaleString()} XP remaining`
-            }
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="xp-bar">
-
-        <div
-          class="xp-progress"
-          style="
-            width:${getXPPercentage()}%
-          "
-        ></div>
-
-      </div>
-
-
-      <div class="tiny">
-
-        ${
-          state.level >= 10
-            ? "Legendary status unlocked"
-            : `${getXPPercentage().toFixed(0)}% complete`
-        }
-
-      </div>
-
-    </div>
-
-
-    <div class="section-title">
       Account
     </div>
 
 
     <div class="activity-list">
 
+      ${profileItem(
+        "✏️",
+        "Edit Profile",
+        "Update your VELOOP profile.",
+        "showToast('Profile editing coming soon')"
+      )}
 
-      <div
-        class="activity-item"
-        onclick="showToast('Profile editing coming soon')">
+      ${profileItem(
+        "🔔",
+        "Notifications",
+        "Stay updated about rewards.",
+        "showToast('Notifications are enabled 🔔')"
+      )}
 
-        <div class="activity-icon">
-          ✏️
-        </div>
-
-        <div class="activity-info">
-
-          <b>
-            Edit Profile
-          </b>
-
-          <small>
-            Update your VELOOP profile.
-          </small>
-
-        </div>
-
-        <div class="activity-reward">
-          →
-        </div>
-
-      </div>
-
-
-      <div
-        class="activity-item"
-        onclick="showToast('Notifications are enabled 🔔')">
-
-        <div class="activity-icon">
-          🔔
-        </div>
-
-        <div class="activity-info">
-
-          <b>
-            Notifications
-          </b>
-
-          <small>
-            Stay updated about rewards and tasks.
-          </small>
-
-        </div>
-
-        <div class="activity-reward">
-          ON
-        </div>
-
-      </div>
-
-
-      <div
-        class="activity-item"
-        onclick="showToast('Help center coming soon')">
-
-        <div class="activity-icon">
-          ❓
-        </div>
-
-        <div class="activity-info">
-
-          <b>
-            Help & Support
-          </b>
-
-          <small>
-            Get help with your VELOOP account.
-          </small>
-
-        </div>
-
-        <div class="activity-reward">
-          →
-        </div>
-
-      </div>
-
+      ${profileItem(
+        "❓",
+        "Help & Support",
+        "Get help with VELOOP.",
+        "showToast('Help center coming soon')"
+      )}
 
     </div>
 
@@ -1776,7 +1364,7 @@ function profile() {
         </h3>
 
         <p>
-          View all VELOOP levels and unlockable ranks.
+          View all VELOOP levels and ranks.
         </p>
 
       </div>
@@ -1798,6 +1386,46 @@ function profile() {
 }
 
 
+function profileItem(
+  icon,
+  title,
+  description,
+  action
+) {
+
+  return `
+
+    <div
+      class="activity-item"
+      onclick="${action}">
+
+      <div class="activity-icon">
+        ${icon}
+      </div>
+
+      <div class="activity-info">
+
+        <b>
+          ${title}
+        </b>
+
+        <small>
+          ${description}
+        </small>
+
+      </div>
+
+      <div class="activity-reward">
+        →
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
 /* =========================================================
    XP CATCHER
    ========================================================= */
@@ -1809,6 +1437,10 @@ let gameTime = 20;
 let gameScore = 0;
 
 let gameRunning = false;
+
+let spawnTimer = null;
+
+let basketX = 50;
 
 
 /* =========================================================
@@ -1822,71 +1454,51 @@ function game() {
     <div class="game-screen">
 
       <h1>
-        XP Catcher ⚡
+        XP CATCHER ⚡
       </h1>
 
       <p>
-        Catch XP orbs before time runs out.
+        Move the basket and catch the falling rewards.
       </p>
 
 
-      <div
-        class="boost-card"
-        style="width:100%; margin-top:15px;">
+      <div class="game-hud">
 
-        <div class="boost-grid">
+        <div class="hud-box">
 
+          <b id="gameTimer">
+            20s
+          </b>
 
-          <div class="boost-item">
+          <span>
+            TIME
+          </span>
 
-            <div class="boost-icon">
-              ⏱️
-            </div>
-
-            <b id="gameTimer">
-              20s
-            </b>
-
-            <span>
-              Time
-            </span>
-
-          </div>
+        </div>
 
 
-          <div class="boost-item">
+        <div class="hud-box">
 
-            <div class="boost-icon">
-              ⚡
-            </div>
+          <b id="gameScore">
+            ${gameScore}
+          </b>
 
-            <b id="gameScore">
-              ${gameScore}
-            </b>
+          <span>
+            SCORE
+          </span>
 
-            <span>
-              Score
-            </span>
-
-          </div>
+        </div>
 
 
-          <div class="boost-item">
+        <div class="hud-box">
 
-            <div class="boost-icon">
-              ⭐
-            </div>
+          <b id="gameXP">
+            0
+          </b>
 
-            <b>
-              XP
-            </b>
-
-            <span>
-              Reward
-            </span>
-
-          </div>
-
+          <span>
+            ROUND XP
+          </span>
 
         </div>
 
@@ -1895,46 +1507,19 @@ function game() {
 
       <div
         class="game-area"
-        id="gameArea">
+        id="gameArea"
+      >
 
         <div
-          class="orb xp"
-          style="left:15%;top:20%;"
-          onclick="catchOrb(this,20)">
+          class="basket"
+          id="basket"
+        >
 
-          +20
+          <div class="basket-glow"></div>
 
-        </div>
+          <div class="basket-rim"></div>
 
-
-        <div
-          class="orb ve"
-          style="left:62%;top:35%;"
-          onclick="catchOrb(this,30)">
-
-          +30
-
-        </div>
-
-
-        <div
-          class="orb xp"
-          style="left:35%;top:58%;"
-          onclick="catchOrb(this,50)">
-
-          +50
-
-        </div>
-
-
-        <div
-          class="orb gem"
-          style="left:72%;top:72%;"
-          onclick="catchOrb(this,10)">
-
-          <span>
-            +10
-          </span>
+          <div class="basket-body"></div>
 
         </div>
 
@@ -1953,7 +1538,7 @@ function game() {
 
 
       <p style="margin-top:10px;">
-        Catch ⚡ XP • 💰 VEs • 💎 Gems
+        🟣 XP &nbsp; 🟡 VEs &nbsp; 🟢 Gems
       </p>
 
     </div>
@@ -1964,17 +1549,13 @@ function game() {
 
 
 /* =========================================================
-   CATCH ORB
+   START GAME
    ========================================================= */
 
-function catchOrb(
-  element,
-  value
-) {
+function startGame() {
 
   if (
-    !gameRunning ||
-    !element
+    gameRunning
   ) {
 
     return;
@@ -1982,66 +1563,120 @@ function catchOrb(
   }
 
 
-  const isVE =
-    element.classList.contains("ve");
-
-
-  const isGem =
-    element.classList.contains("gem");
-
-
-  element.remove();
-
-
-  gameScore +=
-    value;
-
-
-  state.xp +=
-    value;
-
-
-  if (isVE) {
-
-    state.ve += 1;
-
-  }
-
-
-  if (isGem) {
-
-    state.gems += 1;
-
-  }
-
-
-  updateLevel();
-
-
-  const scoreElement =
+  const gameArea =
     document.getElementById(
-      "gameScore"
+      "gameArea"
     );
 
 
-  if (scoreElement) {
+  if (!gameArea) {
 
-    scoreElement.textContent =
-      gameScore;
+    return;
 
   }
 
 
-  spawnOrb();
+  gameRunning =
+    true;
+
+  gameTime =
+    20;
+
+  gameScore =
+    0;
+
+  basketX =
+    50;
+
+
+  clearInterval(
+    gameTimer
+  );
+
+  clearInterval(
+    spawnTimer
+  );
+
+
+  gameArea
+    .querySelectorAll(".orb")
+    .forEach(
+      orb => orb.remove()
+    );
+
+
+  updateBasket();
+
+
+  updateGameHUD();
+
+
+  for (
+    let i = 0;
+    i < 5;
+    i++
+  ) {
+
+    createFallingOrb(
+      true
+    );
+
+  }
+
+
+  showToast(
+    "Game started! Move the basket ⚡"
+  );
+
+
+  gameTimer =
+    setInterval(
+      () => {
+
+        gameTime--;
+
+        updateGameHUD();
+
+
+        if (
+          gameTime <= 0
+        ) {
+
+          endGame();
+
+        }
+
+      },
+      1000
+    );
+
+
+  spawnTimer =
+    setInterval(
+      () => {
+
+        if (
+          gameRunning
+        ) {
+
+          createFallingOrb();
+
+        }
+
+      },
+      700
+    );
 
 }
 
 
 /* =========================================================
-   SPAWN ORB
+   CREATE FALLING ORB
    ========================================================= */
 
-function spawnOrb() {
+function createFallingOrb(
+  instant = false
+) {
 
   const gameArea =
     document.getElementById(
@@ -2075,19 +1710,15 @@ function spawnOrb() {
 
 
   if (
-    random < 0.60
+    random < .58
   ) {
 
-    type = "xp";
-
+    type =
+      "xp";
 
     value =
+      [10,20,30,50]
       [
-        10,
-        20,
-        30,
-        50
-      ][
         Math.floor(
           Math.random() * 4
         )
@@ -2095,23 +1726,25 @@ function spawnOrb() {
 
   }
 
-
   else if (
-    random < 0.85
+    random < .84
   ) {
 
-    type = "ve";
+    type =
+      "ve";
 
-    value = 30;
+    value =
+      30;
 
   }
 
-
   else {
 
-    type = "gem";
+    type =
+      "gem";
 
-    value = 10;
+    value =
+      10;
 
   }
 
@@ -2120,56 +1753,217 @@ function spawnOrb() {
     `orb ${type}`;
 
 
+  orb.dataset.value =
+    value;
+
+
   orb.innerHTML =
     type === "gem"
       ? `<span>+${value}</span>`
       : `+${value}`;
 
 
-  orb.style.left =
-    `${8 + Math.random() * 82}%`;
+  let x =
+    8 + Math.random() * 84;
 
+
+  let y =
+    instant
+      ? 5 + Math.random() * 55
+      : -8;
+
+
+  orb.style.left =
+    `${x}%`;
 
   orb.style.top =
-    `${8 + Math.random() * 78}%`;
-
-
-  orb.onclick =
-    function () {
-
-      catchOrb(
-        orb,
-        value
-      );
-
-    };
+    `${y}%`;
 
 
   gameArea.appendChild(
     orb
   );
 
+
+  if (
+    instant
+  ) {
+
+    animateOrb(
+      orb,
+      x,
+      y
+    );
+
+  }
+
+  else {
+
+    requestAnimationFrame(
+      () => {
+
+        animateOrb(
+          orb,
+          x,
+          y
+        );
+
+      }
+    );
+
+  }
+
 }
 
 
 /* =========================================================
-   START GAME
+   ORB MOVEMENT
    ========================================================= */
 
-function startGame() {
+function animateOrb(
+  orb,
+  x,
+  startY
+) {
 
-  if (gameRunning) {
+  let y =
+    startY;
+
+  const speed =
+    0.30 +
+    Math.random() * 0.20;
+
+
+  function fall() {
+
+    if (
+      !orb.isConnected ||
+      !gameRunning
+    ) {
+
+      return;
+
+    }
+
+
+    y +=
+      speed;
+
+
+    orb.style.top =
+      `${y}%`;
+
+
+    checkBasketCollision(
+      orb,
+      x,
+      y
+    );
+
+
+    if (
+      y > 108
+    ) {
+
+      orb.remove();
+
+      return;
+
+    }
+
+
+    requestAnimationFrame(
+      fall
+    );
+
+  }
+
+
+  fall();
+
+}
+
+
+/* =========================================================
+   COLLISION
+   ========================================================= */
+
+function checkBasketCollision(
+  orb,
+  x,
+  y
+) {
+
+  if (
+    !orb.isConnected ||
+    !gameRunning
+  ) {
 
     return;
 
   }
 
 
-  gameRunning = true;
+  /*
+    Basket collision zone
+    bottom ~ 20px
+    basket height ~ 75px
+  */
 
-  gameTime = 20;
+  if (
+    y >= 80 &&
+    y <= 94 &&
+    Math.abs(
+      x - basketX
+    ) < 11
+  ) {
 
-  gameScore = 0;
+    catchOrb(
+      orb,
+      Number(
+        orb.dataset.value
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CATCH ORB
+   ========================================================= */
+
+function catchOrb(
+  element,
+  value
+) {
+
+  if (
+    !gameRunning ||
+    !element ||
+    !element.isConnected
+  ) {
+
+    return;
+
+  }
+
+
+  const isVE =
+    element.classList.contains(
+      "ve"
+    );
+
+
+  const isGem =
+    element.classList.contains(
+      "gem"
+    );
+
+
+  const rect =
+    element.getBoundingClientRect();
 
 
   const gameArea =
@@ -2178,94 +1972,401 @@ function startGame() {
     );
 
 
-  if (!gameArea) {
+  if (
+    gameArea
+  ) {
 
-    gameRunning = false;
+    createParticles(
+      rect.left +
+        rect.width / 2,
 
-    return;
-
-  }
-
-
-  clearInterval(
-    gameTimer
-  );
-
-
-  gameArea.innerHTML =
-    "";
-
-
-  const scoreElement =
-    document.getElementById(
-      "gameScore"
+      rect.top +
+        rect.height / 2
     );
 
+  }
 
-  if (scoreElement) {
 
-    scoreElement.textContent =
-      "0";
+  element.remove();
+
+
+  gameScore +=
+    value;
+
+
+  state.xp +=
+    value;
+
+
+  if (
+    isVE
+  ) {
+
+    state.ve +=
+      1;
 
   }
 
 
-  const timerElement =
-    document.getElementById(
-      "gameTimer"
-    );
+  if (
+    isGem
+  ) {
 
-
-  if (timerElement) {
-
-    timerElement.textContent =
-      "20s";
+    state.gems +=
+      1;
 
   }
+
+
+  updateLevel();
+
+
+  updateGameHUD();
+
+}
+
+
+/* =========================================================
+   PARTICLES
+   ========================================================= */
+
+function createParticles(
+  x,
+  y
+) {
+
+  const colors = [
+    "#ffd34e",
+    "#a95cff",
+    "#65e65d",
+    "#fff"
+  ];
 
 
   for (
     let i = 0;
-    i < 6;
+    i < 10;
     i++
   ) {
 
-    spawnOrb();
+    const particle =
+      document.createElement(
+        "div"
+      );
+
+
+    particle.className =
+      "particle";
+
+
+    particle.style.left =
+      `${x}px`;
+
+
+    particle.style.top =
+      `${y}px`;
+
+
+    particle.style.background =
+      colors[
+        Math.floor(
+          Math.random() *
+          colors.length
+        )
+      ];
+
+
+    particle.style.setProperty(
+      "--dx",
+      `${(Math.random()-.5)*100}px`
+    );
+
+
+    particle.style.setProperty(
+      "--dy",
+      `${(Math.random()-.5)*100}px`
+    );
+
+
+    document.body.appendChild(
+      particle
+    );
+
+
+    setTimeout(
+      () => particle.remove(),
+      650
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   GAME HUD
+   ========================================================= */
+
+function updateGameHUD() {
+
+  const timer =
+    document.getElementById(
+      "gameTimer"
+    );
+
+  const score =
+    document.getElementById(
+      "gameScore"
+    );
+
+  const xp =
+    document.getElementById(
+      "gameXP"
+    );
+
+
+  if (
+    timer
+  ) {
+
+    timer.textContent =
+      `${gameTime}s`;
 
   }
 
 
-  showToast(
-    "Game started! Catch the rewards ⚡"
+  if (
+    score
+  ) {
+
+    score.textContent =
+      gameScore;
+
+  }
+
+
+  if (
+    xp
+  ) {
+
+    xp.textContent =
+      gameScore;
+
+  }
+
+}
+
+
+/* =========================================================
+   BASKET CONTROL
+   ========================================================= */
+
+function updateBasket() {
+
+  const basket =
+    document.getElementById(
+      "basket"
+    );
+
+
+  if (
+    basket
+  ) {
+
+    basket.style.left =
+      `${basketX}%`;
+
+  }
+
+}
+
+
+/* =========================================================
+   MOUSE CONTROL
+   ========================================================= */
+
+function setupMouseControl() {
+
+  document.addEventListener(
+    "mousemove",
+    event => {
+
+      if (
+        !gameRunning
+      ) {
+
+        return;
+
+      }
+
+
+      const area =
+        document.getElementById(
+          "gameArea"
+        );
+
+
+      if (
+        !area
+      ) {
+
+        return;
+
+      }
+
+
+      const rect =
+        area.getBoundingClientRect();
+
+
+      const x =
+        (
+          (event.clientX - rect.left) /
+          rect.width
+        ) * 100;
+
+
+      basketX =
+        Math.max(
+          8,
+          Math.min(
+            92,
+            x
+          )
+        );
+
+
+      updateBasket();
+
+    }
   );
 
-
-  gameTimer =
-    setInterval(
-      function () {
-
-        gameTime--;
+}
 
 
-        if (timerElement) {
+/* =========================================================
+   TOUCH CONTROL
+   ========================================================= */
 
-          timerElement.textContent =
-            `${gameTime}s`;
+function setupTouchControl() {
 
-        }
+  document.addEventListener(
+    "touchmove",
+    event => {
+
+      if (
+        !gameRunning
+      ) {
+
+        return;
+
+      }
 
 
-        if (
-          gameTime <= 0
-        ) {
+      const touch =
+        event.touches[0];
 
-          endGame();
 
-        }
+      const area =
+        document.getElementById(
+          "gameArea"
+        );
 
-      },
-      1000
-    );
+
+      if (
+        !area
+      ) {
+
+        return;
+
+      }
+
+
+      const rect =
+        area.getBoundingClientRect();
+
+
+      const x =
+        (
+          (touch.clientX - rect.left) /
+          rect.width
+        ) * 100;
+
+
+      basketX =
+        Math.max(
+          8,
+          Math.min(
+            92,
+            x
+          )
+        );
+
+
+      updateBasket();
+
+    },
+    {
+      passive:true
+    }
+  );
+
+}
+
+
+/* =========================================================
+   KEYBOARD CONTROL
+   ========================================================= */
+
+function setupKeyboardControl() {
+
+  document.addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        !gameRunning
+      ) {
+
+        return;
+
+      }
+
+
+      if (
+        event.key === "ArrowLeft"
+      ) {
+
+        basketX -=
+          5;
+
+      }
+
+
+      if (
+        event.key === "ArrowRight"
+      ) {
+
+        basketX +=
+          5;
+
+      }
+
+
+      basketX =
+        Math.max(
+          8,
+          Math.min(
+            92,
+            basketX
+          )
+        );
+
+
+      updateBasket();
+
+    }
+  );
 
 }
 
@@ -2276,82 +2377,486 @@ function startGame() {
 
 function endGame() {
 
-  clearInterval(
-    gameTimer
-  );
+  if (
+    !gameRunning
+  ) {
 
+    return;
 
-  gameTimer =
-    null;
+  }
 
 
   gameRunning =
     false;
 
 
-  updateLevel();
+  clearInterval(
+    gameTimer
+  );
+
+  clearInterval(
+    spawnTimer
+  );
 
 
-  const gameArea =
+  gameTimer =
+    null;
+
+  spawnTimer =
+    null;
+
+
+  const area =
     document.getElementById(
       "gameArea"
     );
 
 
-  if (gameArea) {
+  if (
+    area
+  ) {
 
-    gameArea.innerHTML = `
-
-      <div
-        style="
-          position:absolute;
-          inset:0;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          text-align:center;
-          padding:25px;
-        "
-      >
-
-        <div style="font-size:55px;">
-          🏆
-        </div>
-
-        <h2 style="margin-top:10px;">
-          Challenge Complete!
-        </h2>
-
-        <p style="margin-top:6px;">
-          You collected
-          <strong>${gameScore} XP</strong>
-        </p>
-
-        <p style="margin-top:4px;">
-          Keep playing to level up!
-        </p>
-
-      </div>
-
-    `;
+    area
+      .querySelectorAll(".orb")
+      .forEach(
+        orb => orb.remove()
+      );
 
   }
 
 
-  showToast(
-    `Game complete! +${gameScore} XP 🎉`
-  );
+  const finalXP =
+    gameScore;
+
+
+  const finalVE =
+    Math.floor(
+      gameScore / 10
+    );
+
+
+  state.ve +=
+    finalVE;
+
+
+  updateLevel();
 
 
   setTimeout(
-    function () {
+    () => {
 
-      render("game");
+      showChallengeComplete(
+        finalXP,
+        finalVE
+      );
 
     },
-    1800
+    250
   );
+
+}
+
+
+/* =========================================================
+   LEVEL UP MODAL
+   ========================================================= */
+
+function showLevelUpModal(
+  level
+) {
+
+  const modal =
+    document.getElementById(
+      "modalBox"
+    );
+
+
+  if (
+    !modal
+  ) {
+
+    return;
+
+  }
+
+
+  const levelName =
+    getLevelName(
+      level
+    );
+
+
+  const rewardVE =
+    level * 100;
+
+
+  const rewardGems =
+    level * 5;
+
+
+  state.ve +=
+    rewardVE;
+
+
+  state.gems +=
+    rewardGems;
+
+
+  modal.innerHTML = `
+
+    <div class="modal-title">
+      LEVEL UP!
+    </div>
+
+
+    <div class="modal-subtitle">
+      You've reached a new level
+    </div>
+
+
+    <div class="level-up-art">
+
+      <div class="level-up-ring"></div>
+
+      <div class="level-up-badge">
+
+        <span>
+          LEVEL
+        </span>
+
+        <strong>
+          ${String(
+            level
+          ).padStart(2,"0")}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <h2>
+      ${levelName}
+    </h2>
+
+
+    <div class="reward-popup-grid">
+
+      <div class="popup-reward">
+
+        <b>
+          +${rewardVE}
+        </b>
+
+        <span>
+          VEs
+        </span>
+
+      </div>
+
+
+      <div class="popup-reward">
+
+        <b>
+          +${rewardGems}
+        </b>
+
+        <span>
+          Gems
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="reward-card">
+
+      <div style="text-align:left">
+
+        <h3>
+          🚀 Level Benefits
+        </h3>
+
+        <p>
+          Higher daily XP limit
+        </p>
+
+        <p>
+          New challenges unlocked
+        </p>
+
+        <p>
+          Better reward opportunities
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <button
+      class="btn full"
+      style="margin-top:12px"
+      onclick="closeModal()"
+      type="button">
+
+      CLAIM REWARDS
+
+    </button>
+
+  `;
+
+
+  openModal();
+
+
+  createConfetti();
+
+}
+
+
+/* =========================================================
+   CHALLENGE COMPLETE
+   ========================================================= */
+
+function showChallengeComplete(
+  score,
+  ve
+) {
+
+  const modal =
+    document.getElementById(
+      "modalBox"
+    );
+
+
+  if (
+    !modal
+  ) {
+
+    return;
+
+  }
+
+
+  modal.innerHTML = `
+
+    <div class="modal-title">
+      CHALLENGE COMPLETE!
+    </div>
+
+
+    <div class="modal-subtitle">
+      Outstanding! 🎉
+    </div>
+
+
+    <div class="trophy">
+      🏆
+    </div>
+
+
+    <div>
+
+      <span style="color:#aaa">
+        FINAL SCORE
+      </span>
+
+      <div class="final-score">
+        ${score}
+
+        ${
+          score >= 100
+            ? `<span class="best-badge">NEW BEST!</span>`
+            : ""
+        }
+
+      </div>
+
+    </div>
+
+
+    <div class="reward-popup-grid">
+
+      <div class="popup-reward">
+
+        <b>
+          +${score}
+        </b>
+
+        <span>
+          Experience
+        </span>
+
+      </div>
+
+
+      <div class="popup-reward">
+
+        <b>
+          +${ve}
+        </b>
+
+        <span>
+          Your Reward
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <button
+      class="btn full"
+      onclick="
+        closeModal();
+        render('game');
+      "
+      type="button">
+
+      PLAY AGAIN
+
+    </button>
+
+
+    <button
+      class="btn-secondary full"
+      style="margin-top:8px"
+      onclick="
+        closeModal();
+        render('home');
+      "
+      type="button">
+
+      BACK TO DASHBOARD
+
+    </button>
+
+  `;
+
+
+  openModal();
+
+
+  createConfetti();
+
+}
+
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function createConfetti() {
+
+  const pieces =
+    32;
+
+
+  for (
+    let i = 0;
+    i < pieces;
+    i++
+  ) {
+
+    const piece =
+      document.createElement(
+        "div"
+      );
+
+
+    piece.className =
+      "confetti";
+
+
+    const colors = [
+      "#ffd447",
+      "#9d55ff",
+      "#5be05d",
+      "#ff7a2f",
+      "#fff"
+    ];
+
+
+    piece.style.background =
+      colors[
+        Math.floor(
+          Math.random() *
+          colors.length
+        )
+      ];
+
+
+    piece.style.left =
+      `${Math.random()*100}%`;
+
+
+    piece.style.animationDelay =
+      `${Math.random()*.5}s`;
+
+
+    piece.style.transform =
+      `rotate(${Math.random()*360}deg)`;
+
+
+    document.body.appendChild(
+      piece
+    );
+
+
+    setTimeout(
+      () => piece.remove(),
+      2300
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+function openModal() {
+
+  const layer =
+    document.getElementById(
+      "modalLayer"
+    );
+
+
+  if (
+    layer
+  ) {
+
+    layer.classList.add(
+      "show"
+    );
+
+  }
+
+}
+
+
+function closeModal() {
+
+  const layer =
+    document.getElementById(
+      "modalLayer"
+    );
+
+
+  if (
+    layer
+  ) {
+
+    layer.classList.remove(
+      "show"
+    );
+
+  }
 
 }
 
@@ -2373,7 +2878,9 @@ function showToast(
     );
 
 
-  if (!toast) {
+  if (
+    !toast
+  ) {
 
     return;
 
@@ -2396,7 +2903,7 @@ function showToast(
 
   toastTimer =
     setTimeout(
-      function () {
+      () => {
 
         toast.classList.remove(
           "show"
@@ -2422,7 +2929,7 @@ function setActiveNav(
       ".nav-item"
     )
     .forEach(
-      function (item) {
+      item => {
 
         item.classList.toggle(
           "active",
@@ -2436,7 +2943,7 @@ function setActiveNav(
 
 
 /* =========================================================
-   MAIN RENDER
+   RENDER
    ========================================================= */
 
 function render(
@@ -2449,9 +2956,32 @@ function render(
     );
 
 
-  if (!app) {
+  if (
+    !app
+  ) {
 
     return;
+
+  }
+
+
+  /* stop game when leaving it */
+
+  if (
+    state.currentRoute === "game" &&
+    route !== "game"
+  ) {
+
+    gameRunning =
+      false;
+
+    clearInterval(
+      gameTimer
+    );
+
+    clearInterval(
+      spawnTimer
+    );
 
   }
 
@@ -2465,7 +2995,9 @@ function render(
   );
 
 
-  switch (route) {
+  switch (
+    route
+  ) {
 
     case "earn":
 
@@ -2504,25 +3036,38 @@ function render(
       app.innerHTML =
         game();
 
+      setupGameControls();
+
       break;
 
-
-    case "home":
 
     default:
 
       app.innerHTML =
         home();
 
-      break;
-
   }
 
 
   window.scrollTo({
-    top: 0,
-    behavior: "smooth"
+    top:0,
+    behavior:"smooth"
   });
+
+}
+
+
+/* =========================================================
+   GAME CONTROLS
+   ========================================================= */
+
+function setupGameControls() {
+
+  setupMouseControl();
+
+  setupTouchControl();
+
+  setupKeyboardControl();
 
 }
 
@@ -2535,28 +3080,26 @@ function initializeApp() {
 
   updateLevel();
 
-  render("home");
+  render(
+    "home"
+  );
 
 
-  /* NAVIGATION */
+  /* NAV */
 
   document
     .querySelectorAll(
       ".nav-item"
     )
     .forEach(
-      function (item) {
+      item => {
 
         item.addEventListener(
           "click",
-          function () {
-
-            const route =
-              item.dataset.route;
-
+          () => {
 
             render(
-              route
+              item.dataset.route
             );
 
           }
@@ -2566,7 +3109,7 @@ function initializeApp() {
     );
 
 
-  /* NOTIFICATION */
+  /* NOTIFICATIONS */
 
   const notifyBtn =
     document.getElementById(
@@ -2574,11 +3117,13 @@ function initializeApp() {
     );
 
 
-  if (notifyBtn) {
+  if (
+    notifyBtn
+  ) {
 
     notifyBtn.addEventListener(
       "click",
-      function () {
+      () => {
 
         showToast(
           "You're all caught up! ✨"
@@ -2598,14 +3143,16 @@ function initializeApp() {
     );
 
 
-  if (menuBtn) {
+  if (
+    menuBtn
+  ) {
 
     menuBtn.addEventListener(
       "click",
-      function () {
+      () => {
 
         showToast(
-          "Menu coming soon"
+          "VELOOP Menu ✨"
         );
 
       }
