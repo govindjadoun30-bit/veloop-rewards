@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
 
-  <meta name="theme-color"
-        content="#fffaf0">
+  <meta name="theme-color" content="#050505">
 
-  <meta name="description"
-        content="VELOOP Rewards — earn XP, collect VEs and unlock rewards.">
+  <meta
+    name="description"
+    content="VELOOP Rewards — Earn XP, collect VEs and level up."
+  >
 
   <title>VELOOP Rewards</title>
 
@@ -28,22 +31,32 @@
         class="icon-btn"
         id="menuBtn"
         type="button"
-        aria-label="Menu">
+        aria-label="Menu"
+      >
         ☰
       </button>
 
       <div class="brand">
-        <span class="logo-mark">V</span>
-        <span class="brand-name">VELOOP</span>
+
+        <div class="logo-mark">
+          V
+        </div>
+
+        <div class="brand-name">
+          VELOOP
+        </div>
+
       </div>
 
       <button
         class="icon-btn notification"
         id="notifyBtn"
         type="button"
-        aria-label="Notifications">
+        aria-label="Notifications"
+      >
 
         ♧
+
         <span class="notification-dot"></span>
 
       </button>
@@ -52,7 +65,10 @@
 
 
     <!-- APP -->
-    <main id="app" class="app-content"></main>
+    <main
+      id="app"
+      class="app-content">
+    </main>
 
 
     <!-- BOTTOM NAV -->
@@ -61,54 +77,107 @@
       <button
         class="nav-item active"
         data-route="home"
-        type="button">
+        type="button"
+      >
 
-        <span class="nav-icon">⌂</span>
-        <span class="nav-label">Home</span>
+        <span class="nav-icon">
+          ⌂
+        </span>
+
+        <span class="nav-label">
+          Home
+        </span>
 
       </button>
+
 
       <button
         class="nav-item"
         data-route="earn"
-        type="button">
+        type="button"
+      >
 
-        <span class="nav-icon">$</span>
-        <span class="nav-label">Earn</span>
+        <span class="nav-icon">
+          $
+        </span>
+
+        <span class="nav-label">
+          Earn
+        </span>
 
       </button>
+
 
       <button
         class="nav-item"
         data-route="rewards"
-        type="button">
+        type="button"
+      >
 
-        <span class="nav-icon">🎁</span>
-        <span class="nav-label">Rewards</span>
+        <span class="nav-icon">
+          🏆
+        </span>
+
+        <span class="nav-label">
+          Rewards
+        </span>
 
       </button>
+
 
       <button
         class="nav-item"
         data-route="wallet"
-        type="button">
+        type="button"
+      >
 
-        <span class="nav-icon">▣</span>
-        <span class="nav-label">Wallet</span>
+        <span class="nav-icon">
+          ◈
+        </span>
+
+        <span class="nav-label">
+          Wallet
+        </span>
 
       </button>
+
 
       <button
         class="nav-item"
         data-route="profile"
-        type="button">
+        type="button"
+      >
 
-        <span class="nav-icon">●</span>
-        <span class="nav-label">Profile</span>
+        <span class="nav-icon">
+          ●
+        </span>
+
+        <span class="nav-label">
+          Profile
+        </span>
 
       </button>
 
     </nav>
+
+  </div>
+
+
+  <!-- GLOBAL MODAL -->
+  <div
+    class="modal-layer"
+    id="modalLayer"
+  >
+
+    <div
+      class="modal-backdrop"
+      onclick="closeModal()">
+    </div>
+
+    <div
+      class="modal-box"
+      id="modalBox">
+    </div>
 
   </div>
 
