@@ -1,6 +1,6 @@
 /* =========================================================
    VELOOP REWARDS
-   DARK PREMIUM VERSION
+   PREMIUM DARK EDITION
    ========================================================= */
 
 
@@ -8,11 +8,9 @@
    STATE
    ========================================================= */
 
-let state = {
+const DEFAULT_STATE = {
 
   xp: 0,
-
-  xpMax: 500,
 
   level: 0,
 
@@ -22,19 +20,24 @@ let state = {
 
   gems: 0,
 
-  score: 0,
-
   tasks: 0,
 
   streak: 0,
 
-  currentRoute: "home"
+  currentRoute: "home",
+
+  bestScore: 0,
+
+  activity: []
 
 };
 
 
+let state = loadState();
+
+
 /* =========================================================
-   LEVELS
+   LEVEL SYSTEM
    ========================================================= */
 
 const LEVEL_NAMES = [
@@ -78,11 +81,88 @@ function getLevelName(level) {
 }
 
 
+function getXPPercentage() {
+
+  if (state.level >= 10) {
+
+    return 100;
+
+  }
+
+  const current =
+    LEVEL_XP[state.level];
+
+  const next =
+    LEVEL_XP[state.level + 1];
+
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      (
+        (state.xp - current) /
+        (next - current)
+      ) * 100
+    )
+  );
+
+}
+
+
+/* =========================================================
+   STORAGE
+   ========================================================= */
+
+function saveState() {
+
+  localStorage.setItem(
+    "veloopState",
+    JSON.stringify(state)
+  );
+
+}
+
+
+function loadState() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        "veloopState"
+      );
+
+    if (!saved) {
+
+      return {
+        ...DEFAULT_STATE
+      };
+
+    }
+
+    return {
+      ...DEFAULT_STATE,
+      ...JSON.parse(saved)
+    };
+
+  }
+
+  catch {
+
+    return {
+      ...DEFAULT_STATE
+    };
+
+  }
+
+}
+
+
 /* =========================================================
    LEVEL UPDATE
    ========================================================= */
 
-function updateLevel() {
+function updateLevel(showPopup = true) {
 
   const oldLevel =
     state.level;
@@ -111,26 +191,11 @@ function updateLevel() {
     newLevel;
 
 
-  if (
-    state.level < 10
-  ) {
+  saveState();
 
-    state.xpMax =
-      LEVEL_XP[state.level + 1];
-
-  }
-
-  else {
-
-    state.xpMax =
-      LEVEL_XP[10];
-
-  }
-
-
-  /* LEVEL UP */
 
   if (
+    showPopup &&
     newLevel > oldLevel
   ) {
 
@@ -147,47 +212,51 @@ function updateLevel() {
 
   }
 
+
+  return {
+    oldLevel,
+    newLevel
+  };
+
 }
 
 
 /* =========================================================
-   XP %
+   ADD ACTIVITY
    ========================================================= */
 
-function getXPPercentage() {
+function addActivity(
+  title,
+  reward,
+  icon
+) {
 
-  if (
-    state.level >= 10
-  ) {
+  state.activity.unshift({
 
-    return 100;
+    title,
+    reward,
+    icon,
 
-  }
+    time:
+      new Date().toLocaleTimeString(
+        [],
+        {
+          hour: "2-digit",
+          minute: "2-digit"
+        }
+      )
+
+  });
 
 
-  const current =
-    LEVEL_XP[state.level];
-
-  const next =
-    LEVEL_XP[state.level + 1];
-
-
-  return Math.max(
-    0,
-    Math.min(
-      100,
-      (
-        (state.xp - current) /
-        (next - current)
-      ) * 100
-    )
-  );
+  state.activity =
+    state.activity.slice(0,5);
 
 }
 
 
 /* =========================================================
-   ADD XP
+   XP
    ========================================================= */
 
 function addXP(
@@ -203,6 +272,10 @@ function addXP(
     return;
 
   }
+
+
+  const oldLevel =
+    state.level;
 
 
   state.xp +=
@@ -221,6 +294,8 @@ function addXP(
   }
 
 
+  saveState();
+
   render(
     state.currentRoute
   );
@@ -235,14 +310,21 @@ function addXP(
 function completeTask(
   name,
   xp,
-  ve = 0
+  ve = 0,
+  icon = "⚡"
 ) {
+
+  const oldLevel =
+    state.level;
+
 
   state.xp +=
     xp;
 
+
   state.ve +=
     ve;
+
 
   state.tasks =
     Math.min(
@@ -255,13 +337,20 @@ function completeTask(
     state.streak === 0
   ) {
 
-    state.streak =
-      1;
+    state.streak = 1;
 
   }
 
 
-  updateLevel();
+  addActivity(
+    name,
+    `+${xp} XP`,
+    icon
+  );
+
+
+  const result =
+    updateLevel();
 
 
   showToast(
@@ -269,9 +358,30 @@ function completeTask(
   );
 
 
+  saveState();
+
+
   render(
     "earn"
   );
+
+
+  if (
+    result.newLevel > oldLevel
+  ) {
+
+    setTimeout(
+      () => {
+
+        showLevelUpModal(
+          result.newLevel
+        );
+
+      },
+      300
+    );
+
+  }
 
 }
 
@@ -313,8 +423,7 @@ function header(
 function home() {
 
   const percentage =
-    getXPPercentage()
-      .toFixed(1);
+    getXPPercentage().toFixed(1);
 
 
   const nextLevel =
@@ -389,8 +498,11 @@ function home() {
           <div>
 
             <div class="xp-number">
+
               ${state.xp.toLocaleString()} XP
+
             </div>
+
 
             <div class="xp-label">
 
@@ -422,7 +534,7 @@ function home() {
           ${
             state.level >= 10
               ? "20,000 / 20,000 XP"
-              : `${state.xp.toLocaleString()} / ${state.xpMax.toLocaleString()} XP`
+              : `${state.xp.toLocaleString()} / ${LEVEL_XP[state.level + 1].toLocaleString()} XP`
           }
 
         </div>
@@ -431,7 +543,7 @@ function home() {
 
 
       <div class="section-title">
-        Today's Boost
+        ⚡ Today's Boost
       </div>
 
 
@@ -442,11 +554,11 @@ function home() {
           <div class="boost-item">
 
             <div class="boost-icon">
-              ⚡
+              ⭐
             </div>
 
             <b>
-              ${state.xp} XP
+              ${state.xp}
             </b>
 
             <span>
@@ -459,7 +571,7 @@ function home() {
           <div class="boost-item">
 
             <div class="boost-icon">
-              🎯
+              📋
             </div>
 
             <b>
@@ -504,11 +616,11 @@ function home() {
         <div>
 
           <h3>
-            Choose an activity
+            Explore fun activities
           </h3>
 
           <p>
-            Earn XP and unlock better rewards.
+            Earn XP and unlock exciting rewards.
           </p>
 
         </div>
@@ -526,52 +638,51 @@ function home() {
 
       <div class="action-grid">
 
-
         ${homeAction(
           "▶",
-          "Watch",
+          "Watch & Earn",
           "+50 XP",
-          "completeTask('Watch & Earn',50)"
+          "completeTask('Watch & Earn',50,0,'▶')"
         )}
 
 
         ${homeAction(
-          "✓",
-          "Tasks",
+          "📋",
+          "Daily Tasks",
           "+75 XP",
-          "completeTask('Daily Task',75)"
+          "completeTask('Daily Mission',75,0,'📋')"
         )}
 
 
         ${homeAction(
           "👥",
-          "Refer",
+          "Refer & Earn",
           "+100 XP",
-          "completeTask('Referral',100,5)"
+          "completeTask('Referral Bonus',100,5,'👥')"
         )}
 
 
         ${homeAction(
-          "🎮",
-          "Games",
-          "Play",
+          "🧲",
+          "XP Catcher",
+          "PLAY",
           "render('game')"
         )}
 
 
         ${homeAction(
-          "⚡",
-          "Catcher",
-          "Catch XP",
+          "🎮",
+          "Mini Games",
+          "+75 XP",
           "render('game')"
         )}
 
 
         ${homeAction(
           "🔥",
-          "Streak",
-          "+40 XP",
-          "completeTask('Daily Streak',40)"
+          "Streak Bonus",
+          "+25 XP",
+          "completeTask('Streak Bonus',25,0,'🔥')"
         )}
 
       </div>
@@ -582,19 +693,28 @@ function home() {
         <div>
 
           <h3>
-            ${
-              state.level === 0
-                ? "Your First Rewards"
-                : `${getLevelName(state.level)} Rewards`
-            }
+            Level ${String(
+              state.level
+            ).padStart(2,"0")} Rewards
           </h3>
 
           <p>
-            Keep earning XP to unlock new levels,
-            challenges and rewards.
+            Amazing rewards await you.
+            Keep earning XP to unlock more.
           </p>
 
+          <button
+            class="btn"
+            style="margin-top:9px"
+            onclick="render('rewards')"
+            type="button">
+
+            VIEW REWARDS
+
+          </button>
+
         </div>
+
 
         <div class="reward-image">
           🏆
@@ -650,7 +770,7 @@ function earn() {
   return `
 
     ${header(
-      "Earn & Grow",
+      "Earn & Level Up",
       "Complete activities. Earn XP. Climb levels."
     )}
 
@@ -720,40 +840,40 @@ function earn() {
 
 
     ${earningCard(
-      "🎬",
+      "▶",
       "Watch & Earn",
-      "Watch a short video and earn XP.",
+      "Watch ads and earn XP.",
       "+50 XP",
       "START",
-      "completeTask('Watch & Earn',50)"
+      "completeTask('Watch & Earn',50,0,'▶')"
     )}
 
 
     ${earningCard(
-      "🎯",
-      "Daily Mission",
-      "Complete today's mission.",
-      "+75 XP",
+      "📋",
+      "Daily Missions",
+      "Complete daily tasks.",
+      "+30 XP",
       "START",
-      "completeTask('Daily Mission',75)"
+      "completeTask('Daily Mission',30,0,'📋')"
     )}
 
 
     ${earningCard(
       "👥",
       "Refer & Earn",
-      "Invite friends to VELOOP.",
-      "+100 XP + 5 VEs",
+      "Invite friends and earn.",
+      "+100 XP",
       "START",
-      "completeTask('Referral',100,5)"
+      "completeTask('Referral Bonus',100,5,'👥')"
     )}
 
 
     ${earningCard(
-      "⚡",
-      "XP Catcher",
-      "Catch falling XP, VEs and Gems.",
-      "PLAY",
+      "🎮",
+      "Mini Games",
+      "Play games and win XP.",
+      "+75 XP",
       "PLAY",
       "render('game')"
     )}
@@ -761,41 +881,42 @@ function earn() {
 
     ${earningCard(
       "🔥",
-      "Daily Streak",
-      "Keep your streak alive.",
-      "+40 XP",
+      "Streak Bonus",
+      "Maintain your daily streak.",
+      "+25 XP",
       "CLAIM",
-      "completeTask('Daily Streak',40)"
+      "completeTask('Streak Bonus',25,0,'🔥')"
     )}
 
 
-    <div class="section-title">
-      More Ways To Earn
-    </div>
+    ${earningCard(
+      "🧲",
+      "XP Catcher",
+      "Catch XP orbs and coins.",
+      "+10 XP",
+      "PLAY",
+      "render('game')"
+    )}
 
 
-    <div class="action-grid">
+    <div class="reward-card">
 
-      ${homeAction(
-        "🎮",
-        "Games",
-        "Play & Earn",
-        "showToast('More games coming soon 🎮')"
-      )}
+      <div>
 
-      ${homeAction(
-        "📋",
-        "Surveys",
-        "Earn XP",
-        "showToast('Surveys coming soon 📋')"
-      )}
+        <h3>
+          📈 Keep going!
+        </h3>
 
-      ${homeAction(
-        "🎁",
-        "Offers",
-        "Special rewards",
-        "showToast('Offers coming soon 🎁')"
-      )}
+        <p>
+          You're doing great. Complete more
+          activities to reach your next level.
+        </p>
+
+      </div>
+
+      <div style="font-size:35px;">
+        📊
+      </div>
 
     </div>
 
@@ -803,10 +924,6 @@ function earn() {
 
 }
 
-
-/* =========================================================
-   EARNING CARD
-   ========================================================= */
 
 function earningCard(
   icon,
@@ -831,10 +948,12 @@ function earningCard(
           ${description}
         </p>
 
-        <p>
+        <p style="margin-top:5px;color:#f5d36d">
+
           <strong>
             ${reward}
           </strong>
+
         </p>
 
       </div>
@@ -902,7 +1021,7 @@ function rewards() {
                 ? "Maximum level reached 👑"
                 : `${Math.max(
                     0,
-                    state.xpMax - state.xp
+                    LEVEL_XP[state.level + 1] - state.xp
                   ).toLocaleString()} XP to next level`
             }
 
@@ -921,6 +1040,7 @@ function rewards() {
         </div>
 
       </div>
+
 
       <div class="tiny">
         Level ${String(
@@ -956,10 +1076,6 @@ function rewards() {
 
 }
 
-
-/* =========================================================
-   LEVEL ROW
-   ========================================================= */
 
 function createLevelRow(
   level,
@@ -1013,7 +1129,13 @@ function createLevelRow(
 
 
       <strong>
-        ${unlocked ? "✓" : "🔒"}
+
+        ${
+          unlocked
+            ? "✓"
+            : "🔒"
+        }
+
       </strong>
 
     </div>
@@ -1064,7 +1186,7 @@ function wallet() {
           onclick="withdrawReward()"
           type="button">
 
-          Withdraw
+          WITHDRAW
 
         </button>
 
@@ -1074,7 +1196,7 @@ function wallet() {
           onclick="showToast('No transactions yet')"
           type="button">
 
-          History
+          HISTORY
 
         </button>
 
@@ -1160,7 +1282,6 @@ function wallet() {
     ${redemptionRow("₹300","52,500 VEs")}
     ${redemptionRow("₹500","80,500 VEs")}
     ${redemptionRow("₹1,000","150,000 VEs")}
-
 
   `;
 
@@ -1325,32 +1446,68 @@ function profile() {
 
 
     <div class="section-title">
-      Account
+      Recent Activity
     </div>
 
 
     <div class="activity-list">
 
-      ${profileItem(
-        "✏️",
-        "Edit Profile",
-        "Update your VELOOP profile.",
-        "showToast('Profile editing coming soon')"
-      )}
+      ${
+        state.activity.length
+          ? state.activity
+              .map(
+                item => `
 
-      ${profileItem(
-        "🔔",
-        "Notifications",
-        "Stay updated about rewards.",
-        "showToast('Notifications are enabled 🔔')"
-      )}
+                  <div class="activity-item">
 
-      ${profileItem(
-        "❓",
-        "Help & Support",
-        "Get help with VELOOP.",
-        "showToast('Help center coming soon')"
-      )}
+                    <div class="activity-icon">
+                      ${item.icon}
+                    </div>
+
+                    <div class="activity-info">
+
+                      <b>
+                        ${item.reward}
+                      </b>
+
+                      <small>
+                        ${item.title}
+                        • Today, ${item.time}
+                      </small>
+
+                    </div>
+
+                    <div class="activity-reward">
+                      ›
+                    </div>
+
+                  </div>
+
+                `
+              )
+              .join("")
+          :
+            `
+
+              <div class="reward-card">
+
+                <div>
+
+                  <h3>
+                    No activity yet
+                  </h3>
+
+                  <p>
+                    Complete your first activity
+                    to see it here.
+                  </p>
+
+                </div>
+
+              </div>
+
+            `
+      }
 
     </div>
 
@@ -1360,7 +1517,7 @@ function profile() {
       <div>
 
         <h3>
-          🏆 Level Journey
+          ♛ Level Journey
         </h3>
 
         <p>
@@ -1386,46 +1543,6 @@ function profile() {
 }
 
 
-function profileItem(
-  icon,
-  title,
-  description,
-  action
-) {
-
-  return `
-
-    <div
-      class="activity-item"
-      onclick="${action}">
-
-      <div class="activity-icon">
-        ${icon}
-      </div>
-
-      <div class="activity-info">
-
-        <b>
-          ${title}
-        </b>
-
-        <small>
-          ${description}
-        </small>
-
-      </div>
-
-      <div class="activity-reward">
-        →
-      </div>
-
-    </div>
-
-  `;
-
-}
-
-
 /* =========================================================
    XP CATCHER
    ========================================================= */
@@ -1435,6 +1552,8 @@ let gameTimer = null;
 let gameTime = 20;
 
 let gameScore = 0;
+
+let roundXP = 0;
 
 let gameRunning = false;
 
@@ -1458,7 +1577,7 @@ function game() {
       </h1>
 
       <p>
-        Move the basket and catch the falling rewards.
+        Catch XP orbs, VEs and Gems before time runs out.
       </p>
 
 
@@ -1493,7 +1612,7 @@ function game() {
         <div class="hud-box">
 
           <b id="gameXP">
-            0
+            ${roundXP}
           </b>
 
           <span>
@@ -1528,7 +1647,7 @@ function game() {
 
       <button
         class="btn full"
-        style="margin-top:12px;"
+        style="margin-top:12px"
         onclick="startGame()"
         type="button">
 
@@ -1537,8 +1656,14 @@ function game() {
       </button>
 
 
-      <p style="margin-top:10px;">
-        🟣 XP &nbsp; 🟡 VEs &nbsp; 🟢 Gems
+      <p style="margin-top:10px">
+
+        🟣 XP
+        &nbsp;&nbsp;
+        🟡 VEs
+        &nbsp;&nbsp;
+        🟢 Gems
+
       </p>
 
     </div>
@@ -1554,9 +1679,7 @@ function game() {
 
 function startGame() {
 
-  if (
-    gameRunning
-  ) {
+  if (gameRunning) {
 
     return;
 
@@ -1576,26 +1699,20 @@ function startGame() {
   }
 
 
-  gameRunning =
-    true;
+  gameRunning = true;
 
-  gameTime =
-    20;
+  gameTime = 20;
 
-  gameScore =
-    0;
+  gameScore = 0;
 
-  basketX =
-    50;
+  roundXP = 0;
+
+  basketX = 50;
 
 
-  clearInterval(
-    gameTimer
-  );
+  clearInterval(gameTimer);
 
-  clearInterval(
-    spawnTimer
-  );
+  clearInterval(spawnTimer);
 
 
   gameArea
@@ -1607,7 +1724,6 @@ function startGame() {
 
   updateBasket();
 
-
   updateGameHUD();
 
 
@@ -1617,15 +1733,13 @@ function startGame() {
     i++
   ) {
 
-    createFallingOrb(
-      true
-    );
+    createFallingOrb(true);
 
   }
 
 
   showToast(
-    "Game started! Move the basket ⚡"
+    "Game started! Catch the rewards ⚡"
   );
 
 
@@ -1655,23 +1769,21 @@ function startGame() {
     setInterval(
       () => {
 
-        if (
-          gameRunning
-        ) {
+        if (gameRunning) {
 
           createFallingOrb();
 
         }
 
       },
-      700
+      650
     );
 
 }
 
 
 /* =========================================================
-   CREATE FALLING ORB
+   CREATE ORB
    ========================================================= */
 
 function createFallingOrb(
@@ -1695,9 +1807,7 @@ function createFallingOrb(
 
 
   const orb =
-    document.createElement(
-      "div"
-    );
+    document.createElement("div");
 
 
   const random =
@@ -1709,16 +1819,12 @@ function createFallingOrb(
   let value;
 
 
-  if (
-    random < .58
-  ) {
+  if (random < .58) {
 
-    type =
-      "xp";
+    type = "xp";
 
     value =
-      [10,20,30,50]
-      [
+      [10,20,30,50][
         Math.floor(
           Math.random() * 4
         )
@@ -1726,25 +1832,19 @@ function createFallingOrb(
 
   }
 
-  else if (
-    random < .84
-  ) {
+  else if (random < .84) {
 
-    type =
-      "ve";
+    type = "ve";
 
-    value =
-      30;
+    value = 30;
 
   }
 
   else {
 
-    type =
-      "gem";
+    type = "gem";
 
-    value =
-      10;
+    value = 10;
 
   }
 
@@ -1763,13 +1863,13 @@ function createFallingOrb(
       : `+${value}`;
 
 
-  let x =
+  const x =
     8 + Math.random() * 84;
 
 
-  let y =
+  const y =
     instant
-      ? 5 + Math.random() * 55
+      ? 5 + Math.random() * 45
       : -8;
 
 
@@ -1785,33 +1885,17 @@ function createFallingOrb(
   );
 
 
-  if (
-    instant
-  ) {
+  requestAnimationFrame(
+    () => {
 
-    animateOrb(
-      orb,
-      x,
-      y
-    );
+      animateOrb(
+        orb,
+        x,
+        y
+      );
 
-  }
-
-  else {
-
-    requestAnimationFrame(
-      () => {
-
-        animateOrb(
-          orb,
-          x,
-          y
-        );
-
-      }
-    );
-
-  }
+    }
+  );
 
 }
 
@@ -1829,9 +1913,10 @@ function animateOrb(
   let y =
     startY;
 
+
   const speed =
-    0.30 +
-    Math.random() * 0.20;
+    0.28 +
+    Math.random() * 0.22;
 
 
   function fall() {
@@ -1846,9 +1931,7 @@ function animateOrb(
     }
 
 
-    y +=
-      speed;
-
+    y += speed;
 
     orb.style.top =
       `${y}%`;
@@ -1861,9 +1944,7 @@ function animateOrb(
     );
 
 
-    if (
-      y > 108
-    ) {
+    if (y > 108) {
 
       orb.remove();
 
@@ -1904,18 +1985,12 @@ function checkBasketCollision(
   }
 
 
-  /*
-    Basket collision zone
-    bottom ~ 20px
-    basket height ~ 75px
-  */
-
   if (
-    y >= 80 &&
+    y >= 78 &&
     y <= 94 &&
     Math.abs(
       x - basketX
-    ) < 11
+    ) < 12
   ) {
 
     catchOrb(
@@ -1931,7 +2006,7 @@ function checkBasketCollision(
 
 
 /* =========================================================
-   CATCH ORB
+   CATCH
    ========================================================= */
 
 function catchOrb(
@@ -1951,74 +2026,47 @@ function catchOrb(
 
 
   const isVE =
-    element.classList.contains(
-      "ve"
-    );
+    element.classList.contains("ve");
 
 
   const isGem =
-    element.classList.contains(
-      "gem"
-    );
+    element.classList.contains("gem");
 
 
   const rect =
     element.getBoundingClientRect();
 
 
-  const gameArea =
-    document.getElementById(
-      "gameArea"
-    );
-
-
-  if (
-    gameArea
-  ) {
-
-    createParticles(
-      rect.left +
-        rect.width / 2,
-
-      rect.top +
-        rect.height / 2
-    );
-
-  }
+  createParticles(
+    rect.left + rect.width / 2,
+    rect.top + rect.height / 2
+  );
 
 
   element.remove();
 
 
-  gameScore +=
-    value;
+  gameScore += value;
 
 
-  state.xp +=
-    value;
+  roundXP +=
+    isVE || isGem
+      ? Math.floor(value / 3)
+      : value;
 
 
-  if (
-    isVE
-  ) {
+  if (isVE) {
 
-    state.ve +=
-      1;
+    state.ve += 1;
 
   }
 
 
-  if (
-    isGem
-  ) {
+  if (isGem) {
 
-    state.gems +=
-      1;
+    state.gems += 1;
 
   }
-
-
-  updateLevel();
 
 
   updateGameHUD();
@@ -2035,11 +2083,10 @@ function createParticles(
   y
 ) {
 
-  const colors = [
-    "#ffd34e",
-    "#a95cff",
-    "#65e65d",
-    "#fff"
+  const symbols = [
+    "✦",
+    "•",
+    "✧"
   ];
 
 
@@ -2059,33 +2106,38 @@ function createParticles(
       "particle";
 
 
+    particle.textContent =
+      symbols[
+        Math.floor(
+          Math.random() *
+          symbols.length
+        )
+      ];
+
+
     particle.style.left =
       `${x}px`;
-
 
     particle.style.top =
       `${y}px`;
 
 
-    particle.style.background =
-      colors[
-        Math.floor(
-          Math.random() *
-          colors.length
-        )
-      ];
-
-
     particle.style.setProperty(
       "--dx",
-      `${(Math.random()-.5)*100}px`
+      `${(Math.random()-.5)*120}px`
     );
 
 
     particle.style.setProperty(
       "--dy",
-      `${(Math.random()-.5)*100}px`
+      `${(Math.random()-.5)*120}px`
     );
+
+
+    particle.style.color =
+      Math.random() > .5
+        ? "#ffd75b"
+        : "#b77aff";
 
 
     document.body.appendChild(
@@ -2104,7 +2156,7 @@ function createParticles(
 
 
 /* =========================================================
-   GAME HUD
+   HUD
    ========================================================= */
 
 function updateGameHUD() {
@@ -2125,9 +2177,7 @@ function updateGameHUD() {
     );
 
 
-  if (
-    timer
-  ) {
+  if (timer) {
 
     timer.textContent =
       `${gameTime}s`;
@@ -2135,9 +2185,7 @@ function updateGameHUD() {
   }
 
 
-  if (
-    score
-  ) {
+  if (score) {
 
     score.textContent =
       gameScore;
@@ -2145,12 +2193,10 @@ function updateGameHUD() {
   }
 
 
-  if (
-    xp
-  ) {
+  if (xp) {
 
     xp.textContent =
-      gameScore;
+      roundXP;
 
   }
 
@@ -2158,7 +2204,7 @@ function updateGameHUD() {
 
 
 /* =========================================================
-   BASKET CONTROL
+   BASKET
    ========================================================= */
 
 function updateBasket() {
@@ -2169,9 +2215,7 @@ function updateBasket() {
     );
 
 
-  if (
-    basket
-  ) {
+  if (basket) {
 
     basket.style.left =
       `${basketX}%`;
@@ -2182,7 +2226,7 @@ function updateBasket() {
 
 
 /* =========================================================
-   MOUSE CONTROL
+   MOUSE
    ========================================================= */
 
 function setupMouseControl() {
@@ -2191,9 +2235,7 @@ function setupMouseControl() {
     "mousemove",
     event => {
 
-      if (
-        !gameRunning
-      ) {
+      if (!gameRunning) {
 
         return;
 
@@ -2206,9 +2248,7 @@ function setupMouseControl() {
         );
 
 
-      if (
-        !area
-      ) {
+      if (!area) {
 
         return;
 
@@ -2245,7 +2285,7 @@ function setupMouseControl() {
 
 
 /* =========================================================
-   TOUCH CONTROL
+   TOUCH
    ========================================================= */
 
 function setupTouchControl() {
@@ -2254,9 +2294,7 @@ function setupTouchControl() {
     "touchmove",
     event => {
 
-      if (
-        !gameRunning
-      ) {
+      if (!gameRunning) {
 
         return;
 
@@ -2273,9 +2311,7 @@ function setupTouchControl() {
         );
 
 
-      if (
-        !area
-      ) {
+      if (!area) {
 
         return;
 
@@ -2307,7 +2343,7 @@ function setupTouchControl() {
 
     },
     {
-      passive:true
+      passive: true
     }
   );
 
@@ -2315,7 +2351,7 @@ function setupTouchControl() {
 
 
 /* =========================================================
-   KEYBOARD CONTROL
+   KEYBOARD
    ========================================================= */
 
 function setupKeyboardControl() {
@@ -2324,9 +2360,7 @@ function setupKeyboardControl() {
     "keydown",
     event => {
 
-      if (
-        !gameRunning
-      ) {
+      if (!gameRunning) {
 
         return;
 
@@ -2337,8 +2371,7 @@ function setupKeyboardControl() {
         event.key === "ArrowLeft"
       ) {
 
-        basketX -=
-          5;
+        basketX -= 5;
 
       }
 
@@ -2347,8 +2380,7 @@ function setupKeyboardControl() {
         event.key === "ArrowRight"
       ) {
 
-        basketX +=
-          5;
+        basketX += 5;
 
       }
 
@@ -2377,33 +2409,24 @@ function setupKeyboardControl() {
 
 function endGame() {
 
-  if (
-    !gameRunning
-  ) {
+  if (!gameRunning) {
 
     return;
 
   }
 
 
-  gameRunning =
-    false;
+  gameRunning = false;
 
 
-  clearInterval(
-    gameTimer
-  );
+  clearInterval(gameTimer);
 
-  clearInterval(
-    spawnTimer
-  );
+  clearInterval(spawnTimer);
 
 
-  gameTimer =
-    null;
+  gameTimer = null;
 
-  spawnTimer =
-    null;
+  spawnTimer = null;
 
 
   const area =
@@ -2412,9 +2435,7 @@ function endGame() {
     );
 
 
-  if (
-    area
-  ) {
+  if (area) {
 
     area
       .querySelectorAll(".orb")
@@ -2423,6 +2444,10 @@ function endGame() {
       );
 
   }
+
+
+  const oldLevel =
+    state.level;
 
 
   const finalXP =
@@ -2435,11 +2460,51 @@ function endGame() {
     );
 
 
+  state.xp +=
+    finalXP;
+
+
   state.ve +=
     finalVE;
 
 
-  updateLevel();
+  state.tasks =
+    Math.min(
+      8,
+      state.tasks + 1
+    );
+
+
+  state.streak =
+    Math.max(
+      1,
+      state.streak
+    );
+
+
+  if (
+    gameScore >
+    state.bestScore
+  ) {
+
+    state.bestScore =
+      gameScore;
+
+  }
+
+
+  addActivity(
+    "XP Catcher Reward",
+    `+${finalXP} XP`,
+    "🧲"
+  );
+
+
+  const result =
+    updateLevel(false);
+
+
+  saveState();
 
 
   setTimeout(
@@ -2447,11 +2512,12 @@ function endGame() {
 
       showChallengeComplete(
         finalXP,
-        finalVE
+        finalVE,
+        result.newLevel > oldLevel
       );
 
     },
-    250
+    300
   );
 
 }
@@ -2471,9 +2537,7 @@ function showLevelUpModal(
     );
 
 
-  if (
-    !modal
-  ) {
+  if (!modal) {
 
     return;
 
@@ -2481,9 +2545,7 @@ function showLevelUpModal(
 
 
   const levelName =
-    getLevelName(
-      level
-    );
+    getLevelName(level);
 
 
   const rewardVE =
@@ -2502,6 +2564,9 @@ function showLevelUpModal(
     rewardGems;
 
 
+  saveState();
+
+
   modal.innerHTML = `
 
     <div class="modal-title">
@@ -2510,7 +2575,7 @@ function showLevelUpModal(
 
 
     <div class="modal-subtitle">
-      You've reached a new level
+      You've reached a new level ✨
     </div>
 
 
@@ -2572,22 +2637,22 @@ function showLevelUpModal(
 
     <div class="reward-card">
 
-      <div style="text-align:left">
+      <div>
 
         <h3>
           🚀 Level Benefits
         </h3>
 
         <p>
-          Higher daily XP limit
+          📈 Higher daily XP limit
         </p>
 
         <p>
-          New challenges unlocked
+          🎯 Access to new challenges
         </p>
 
         <p>
-          Better reward opportunities
+          🎁 Better reward opportunities
         </p>
 
       </div>
@@ -2610,7 +2675,6 @@ function showLevelUpModal(
 
   openModal();
 
-
   createConfetti();
 
 }
@@ -2622,7 +2686,8 @@ function showLevelUpModal(
 
 function showChallengeComplete(
   score,
-  ve
+  ve,
+  levelUp = false
 ) {
 
   const modal =
@@ -2631,9 +2696,7 @@ function showChallengeComplete(
     );
 
 
-  if (
-    !modal
-  ) {
+  if (!modal) {
 
     return;
 
@@ -2659,15 +2722,18 @@ function showChallengeComplete(
 
     <div>
 
-      <span style="color:#aaa">
+      <span style="color:#888;font-size:10px">
         FINAL SCORE
       </span>
 
+
       <div class="final-score">
+
         ${score}
 
         ${
-          score >= 100
+          score > 0 &&
+          score >= state.bestScore
             ? `<span class="best-badge">NEW BEST!</span>`
             : ""
         }
@@ -2699,12 +2765,41 @@ function showChallengeComplete(
         </b>
 
         <span>
-          Your Reward
+          VEs Reward
         </span>
 
       </div>
 
     </div>
+
+
+    ${
+      levelUp
+        ? `
+
+          <div class="reward-card">
+
+            <div style="text-align:left">
+
+              <h3>
+                🎉 Level Up!
+              </h3>
+
+              <p>
+                You've unlocked
+                Level ${String(
+                  state.level
+                ).padStart(2,"0")}
+                — ${getLevelName(state.level)}.
+              </p>
+
+            </div>
+
+          </div>
+
+        `
+        : ""
+    }
 
 
     <button
@@ -2738,7 +2833,6 @@ function showChallengeComplete(
 
   openModal();
 
-
   createConfetti();
 
 }
@@ -2750,8 +2844,7 @@ function showChallengeComplete(
 
 function createConfetti() {
 
-  const pieces =
-    32;
+  const pieces = 38;
 
 
   for (
@@ -2771,11 +2864,13 @@ function createConfetti() {
 
 
     const colors = [
+
       "#ffd447",
       "#9d55ff",
       "#5be05d",
       "#ff7a2f",
       "#fff"
+
     ];
 
 
@@ -2793,11 +2888,13 @@ function createConfetti() {
 
 
     piece.style.animationDelay =
-      `${Math.random()*.5}s`;
+      `${Math.random()*.45}s`;
 
 
-    piece.style.transform =
-      `rotate(${Math.random()*360}deg)`;
+    piece.style.setProperty(
+      "--random",
+      Math.random()
+    );
 
 
     document.body.appendChild(
@@ -2807,7 +2904,7 @@ function createConfetti() {
 
     setTimeout(
       () => piece.remove(),
-      2300
+      2400
     );
 
   }
@@ -2827,9 +2924,7 @@ function openModal() {
     );
 
 
-  if (
-    layer
-  ) {
+  if (layer) {
 
     layer.classList.add(
       "show"
@@ -2848,9 +2943,7 @@ function closeModal() {
     );
 
 
-  if (
-    layer
-  ) {
+  if (layer) {
 
     layer.classList.remove(
       "show"
@@ -2878,9 +2971,7 @@ function showToast(
     );
 
 
-  if (
-    !toast
-  ) {
+  if (!toast) {
 
     return;
 
@@ -2956,32 +3047,23 @@ function render(
     );
 
 
-  if (
-    !app
-  ) {
+  if (!app) {
 
     return;
 
   }
 
 
-  /* stop game when leaving it */
-
   if (
     state.currentRoute === "game" &&
     route !== "game"
   ) {
 
-    gameRunning =
-      false;
+    gameRunning = false;
 
-    clearInterval(
-      gameTimer
-    );
+    clearInterval(gameTimer);
 
-    clearInterval(
-      spawnTimer
-    );
+    clearInterval(spawnTimer);
 
   }
 
@@ -2995,9 +3077,7 @@ function render(
   );
 
 
-  switch (
-    route
-  ) {
+  switch (route) {
 
     case "earn":
 
@@ -3049,9 +3129,12 @@ function render(
   }
 
 
+  saveState();
+
+
   window.scrollTo({
-    top:0,
-    behavior:"smooth"
+    top: 0,
+    behavior: "smooth"
   });
 
 }
@@ -3061,13 +3144,26 @@ function render(
    GAME CONTROLS
    ========================================================= */
 
+let gameControlsReady = false;
+
+
 function setupGameControls() {
+
+  if (gameControlsReady) {
+
+    return;
+
+  }
+
 
   setupMouseControl();
 
   setupTouchControl();
 
   setupKeyboardControl();
+
+
+  gameControlsReady = true;
 
 }
 
@@ -3078,14 +3174,12 @@ function setupGameControls() {
 
 function initializeApp() {
 
-  updateLevel();
+  updateLevel(false);
 
-  render(
-    "home"
-  );
+  render("home");
 
 
-  /* NAV */
+  /* NAVIGATION */
 
   document
     .querySelectorAll(
@@ -3117,9 +3211,7 @@ function initializeApp() {
     );
 
 
-  if (
-    notifyBtn
-  ) {
+  if (notifyBtn) {
 
     notifyBtn.addEventListener(
       "click",
@@ -3143,9 +3235,7 @@ function initializeApp() {
     );
 
 
-  if (
-    menuBtn
-  ) {
+  if (menuBtn) {
 
     menuBtn.addEventListener(
       "click",
@@ -3156,6 +3246,24 @@ function initializeApp() {
         );
 
       }
+    );
+
+  }
+
+
+  /* BACKDROP */
+
+  const backdrop =
+    document.getElementById(
+      "modalBackdrop"
+    );
+
+
+  if (backdrop) {
+
+    backdrop.addEventListener(
+      "click",
+      closeModal
     );
 
   }
