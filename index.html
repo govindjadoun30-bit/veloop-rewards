@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
 
   <meta
@@ -8,7 +10,10 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
   >
 
-  <meta name="theme-color" content="#050505">
+  <meta
+    name="theme-color"
+    content="#050505"
+  >
 
   <meta
     name="description"
@@ -18,7 +23,9 @@
   <title>VELOOP Rewards</title>
 
   <link rel="stylesheet" href="style.css">
+
 </head>
+
 
 <body>
 
@@ -36,6 +43,7 @@
         ☰
       </button>
 
+
       <div class="brand">
 
         <div class="logo-mark">
@@ -47,6 +55,7 @@
         </div>
 
       </div>
+
 
       <button
         class="icon-btn notification"
@@ -64,7 +73,7 @@
     </header>
 
 
-    <!-- APP -->
+    <!-- MAIN APP -->
     <main
       id="app"
       class="app-content">
@@ -79,15 +88,8 @@
         data-route="home"
         type="button"
       >
-
-        <span class="nav-icon">
-          ⌂
-        </span>
-
-        <span class="nav-label">
-          Home
-        </span>
-
+        <span class="nav-icon">⌂</span>
+        <span class="nav-label">Home</span>
       </button>
 
 
@@ -96,15 +98,8 @@
         data-route="earn"
         type="button"
       >
-
-        <span class="nav-icon">
-          $
-        </span>
-
-        <span class="nav-label">
-          Earn
-        </span>
-
+        <span class="nav-icon">$</span>
+        <span class="nav-label">Earn</span>
       </button>
 
 
@@ -113,15 +108,8 @@
         data-route="rewards"
         type="button"
       >
-
-        <span class="nav-icon">
-          🏆
-        </span>
-
-        <span class="nav-label">
-          Rewards
-        </span>
-
+        <span class="nav-icon">♛</span>
+        <span class="nav-label">Rewards</span>
       </button>
 
 
@@ -130,15 +118,8 @@
         data-route="wallet"
         type="button"
       >
-
-        <span class="nav-icon">
-          ◈
-        </span>
-
-        <span class="nav-label">
-          Wallet
-        </span>
-
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">Wallet</span>
       </button>
 
 
@@ -147,15 +128,8 @@
         data-route="profile"
         type="button"
       >
-
-        <span class="nav-icon">
-          ●
-        </span>
-
-        <span class="nav-label">
-          Profile
-        </span>
-
+        <span class="nav-icon">●</span>
+        <span class="nav-label">Profile</span>
       </button>
 
     </nav>
@@ -171,13 +145,13 @@
 
     <div
       class="modal-backdrop"
-      onclick="closeModal()">
-    </div>
+      id="modalBackdrop"
+    ></div>
 
     <div
       class="modal-box"
-      id="modalBox">
-    </div>
+      id="modalBox"
+    ></div>
 
   </div>
 
@@ -187,11 +161,12 @@
     class="toast"
     id="toast"
     role="status"
-    aria-live="polite">
-  </div>
+    aria-live="polite"
+  ></div>
 
 
   <script src="script.js"></script>
 
 </body>
+
 </html>
